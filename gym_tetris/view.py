@@ -1,6 +1,17 @@
 import pygame
 
 COLORS = {
+    1: [(204, 102, 51), (184, 92, 46)],
+    2: [(153, 102, 153), (138, 92, 138)],
+    3: [(51, 102, 204), (46, 92, 184)],
+    4: [(204, 51, 51), (184, 46, 46)],
+    5: [(51, 204, 255), (46, 184, 230)],
+    6: [(204, 204, 51), (184, 184, 46)],
+    7: [(51, 153, 102), (46, 138, 92)],
+}
+
+'''
+COLORS = {
     1: [(0, 240, 240), (0, 216, 216)],
     2: [(240, 240, 0), (216, 216, 0)],
     3: [(160, 0, 240), (144, 0, 216)],
@@ -9,6 +20,7 @@ COLORS = {
     6: [(0, 160, 240), (0, 144, 216)],
     7: [(240, 160, 0), (216, 144, 0)],
 }
+'''
 
 PIECE_OFFSETS = {
     1: (-0.5, -0.5),
@@ -31,8 +43,10 @@ class View:
         self.clock = pygame.time.Clock()
         self.board_rect = (25, 25, 240, 476)
         self.board_x, self.board_y, self.board_width, self.board_height = self.board_rect
-        self.hold_rect = (290, 25, 144, 72)
-        self.next_rect = (290, 122, 144, 72)
+        #self.hold_rect = (290, 25, 144, 72)
+        #self.next_rect = (290, 122, 144, 72)
+        self.hold_rect = (290, 25, 144, 125)
+        self.next_rect = (290, 175, 144, 125)
 
     def draw(self, game):
         """"Draws everything."""
@@ -96,14 +110,14 @@ class View:
         pygame.draw.rect(self.win, (0, 0, 0), self.hold_rect)
         self._draw_piece(piece_holding, self.hold_rect)
         text_surface = self.font.render('Hold', False, (255, 255, 255))
-        self.win.blit(text_surface, (self.hold_rect[0] + 65, self.hold_rect[1] + 47))
+        self.win.blit(text_surface, (self.hold_rect[0] + 65, self.hold_rect[1] + 97))
 
     def _draw_piece_next(self, piece_next):
         """"Draws the next piece."""
         pygame.draw.rect(self.win, (0, 0, 0), self.next_rect)
         self._draw_piece(piece_next, self.next_rect)
         text_surface = self.font.render('Next', False, (255, 255, 255))
-        self.win.blit(text_surface, (self.next_rect[0] + 65, self.next_rect[1] + 47))
+        self.win.blit(text_surface, (self.next_rect[0] + 65, self.next_rect[1] + 97))
 
     def _draw_piece(self, piece, rect):
         """"Draws a piece."""
@@ -113,7 +127,7 @@ class View:
         cell_width = 24
         cell_height = 24
         begin_x += width / 2 + 12
-        begin_y += 12
+        begin_y += height / 2 - 30
 
         code = piece.shape.code
         offset_x, offset_y = PIECE_OFFSETS[code]
@@ -126,11 +140,11 @@ class View:
     def _draw_score(self, level, score, lines):
         """"Draws the score."""
         level_surface = self.font.render('Level ' + str(level), False, (0, 0, 0))
-        self.win.blit(level_surface, (self.board_x + self.board_width + 25, self.board_y + 200))
+        self.win.blit(level_surface, (self.board_x + self.board_width + 25, self.board_y + 300))
         score_surface = self.font.render('Score ' + str(score), False, (0, 0, 0))
-        self.win.blit(score_surface, (self.board_x + self.board_width + 25, self.board_y + 250))
+        self.win.blit(score_surface, (self.board_x + self.board_width + 25, self.board_y + 350))
         score_surface = self.font.render('Lines  ' + str(lines), False, (0, 0, 0))
-        self.win.blit(score_surface, (self.board_x + self.board_width + 25, self.board_y + 300))
+        self.win.blit(score_surface, (self.board_x + self.board_width + 25, self.board_y + 400))
         pass
 
     def _draw_game_over(self):
