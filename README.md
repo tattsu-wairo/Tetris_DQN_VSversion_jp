@@ -1,5 +1,5 @@
 # Tetris
-Tetris environment forked from[source](https://github.com/michiel-cox/Tetris-DQN.git)
+Tetris environment forked from [source](https://github.com/michiel-cox/Tetris-DQN.git)
 
 ## Action for human testing
 
