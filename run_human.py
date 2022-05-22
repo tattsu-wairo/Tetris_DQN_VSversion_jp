@@ -21,15 +21,13 @@ def main():
                     action = 1
                 elif event.key == pygame.K_RIGHT:
                     action = 2
-                elif event.key == pygame.K_z:
-                    action = 3
-                elif event.key == pygame.K_x:
+                elif event.key == pygame.K_UP:
                     action = 4
                 elif event.key == pygame.K_DOWN:
                     action = 5
-                elif event.key == pygame.K_UP:
-                    action = 6
                 elif event.key == pygame.K_SPACE:
+                    action = 6
+                elif event.key == pygame.K_LSHIFT:
                     action = 7
                 elif event.key == pygame.K_r:
                     env.reset()
