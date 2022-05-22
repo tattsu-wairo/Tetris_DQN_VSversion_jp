@@ -1,7 +1,8 @@
-# Tetris
-Tetris environment forked from [source](https://github.com/michiel-cox/Tetris-DQN.git)
+# NYCU 2022 Spring AI Final Project
+## Tetris Environment
+Tetris environment is from [source](https://github.com/michiel-cox/Tetris-DQN.git)
 
-## Action for human testing
+### Action for human testing
 
 | Keyboard  | Move |
 | ---: | ---: |
@@ -12,5 +13,9 @@ Tetris environment forked from [source](https://github.com/michiel-cox/Tetris-DQ
 | r | restart the game |
 
 
-## How to run
+### How to run
 Run `run_human.py` to play Tetris manually.
+
+## Goal
+Write our own tetris AI agent using DQN algorithm.
+It we still got time, we want to modify the agent so it have performance similar to human (maybe also try out other algorithms). Then, write a new `view.py` to play manually on the left and run AI on the right side, so we can battle against the AI we wrote.
