@@ -1,5 +1,5 @@
 import random
-
+import numpy as np
 
 def get_random_bag():
     """Returns a bag with unique pieces. (Bag randomizer)"""
@@ -163,7 +163,7 @@ class Piece:
 
 class Board:
 
-    def __init__(self, columns, rows):
+    def __init__(self, columns, rows, hold_mode=0):
         self.columns = columns
         self.rows = rows
         self.pieces_table = [[0 for i in range(columns)] for j in range(rows)]
@@ -174,6 +174,7 @@ class Board:
         self.can_hold = True
         self.bag = get_random_bag()
         self.create_piece()
+        self.hold_mode = hold_mode  #whether considering hold when trainning, playing ai.
 
     def create_piece(self):
         """The next piece becomes the current piece and spawn it on the board."""
@@ -209,6 +210,7 @@ class Board:
         for x, y in self.piece.get_shape_coords():
             next_x = x + dir_x
             next_y = y + dir_y
+
             if next_x < 0 or next_x >= self.columns or next_y < 0 or next_y >= self.rows:
                 return False
             if self.pieces_table[next_y][next_x] != 0:
@@ -275,7 +277,7 @@ class Board:
             return False
 
         self.piece.rotate(rotation)
-
+        
         return self.can_move_piece(0, 0) and self.move_piece(-self.piece.x + x) and self.drop_piece_fully()
 
     def drop_piece_fully(self):
@@ -320,9 +322,16 @@ class Board:
             return []
 
         states = []
-
+        
+        
+        
+        #1. insert the state of current piece
         last_piece = self.piece_last
 
+        X = self.piece.x
+        Y = self.piece.y
+
+        
         for rotation in range(self.piece.shape.rotations):
             for column in range(self.columns + 1):
                 piece = Piece(self.piece.x, self.piece.y, self.piece.shape, self.piece.rotation)
@@ -335,7 +344,7 @@ class Board:
                         removed_rows.append((y, self.remove_row(y)))
 
                     # Save
-                    states.append(((column, rotation), self.get_info(rows_cleared)))
+                    states.append(((column, rotation, 0), self.get_info(rows_cleared)))
 
                     # Reset
                     for y, row in reversed(removed_rows):
@@ -346,6 +355,48 @@ class Board:
 
                 self.piece = piece
                 self.piece_last = last_piece
+
+        #record current piece
+        cur_piece_buf = self.piece
+
+        #2. insert the state of changable piece
+        """
+        construct another two layer for loop and double the possible state
+        1. self.piece_holding == None (choose next piece)
+        2. otherwise (can choose hold piece) 
+        """
+        if self.hold_mode:
+            if self.piece_holding == None:    
+                self.piece = self.piece_next
+            else:
+                self.piece = self.piece_holding
+            
+            for rotation in range(self.piece.shape.rotations):
+                for column in range(self.columns + 1):
+                    piece = Piece(X, Y, self.piece.shape, self.piece.rotation)
+
+                    # Execute
+                    if self.move_and_drop(column, rotation):
+                        rows_cleared = self.get_cleared_rows()
+                        removed_rows = []
+                        for y in rows_cleared:
+                            removed_rows.append((y, self.remove_row(y)))
+
+                        # Save
+                        states.append(((column, rotation, 1), self.get_info(rows_cleared)))
+
+                        # Reset
+                        for y, row in reversed(removed_rows):
+                            self.insert_row(y, row)
+
+                        for x, y in self.piece_last.get_shape_coords():
+                            self.pieces_table[y][x] = 0
+
+                    self.piece = piece
+                    self.piece_last = last_piece
+        
+            #reset to original piece
+            self.piece = cur_piece_buf
         return states
 
     def get_info(self, rows_cleared):

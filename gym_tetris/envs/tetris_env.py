@@ -18,10 +18,11 @@ class TetrisEnv(gym.Env):
         'render.modes': ['human']
     }
 
-    def __init__(self, action_mode=0):
+    def __init__(self, action_mode=0, hold_mode=0):
         self.view = None
         self.game = None
         self.action_mode = action_mode
+        self.hold_mode = hold_mode
         if action_mode == 0:
             # Nothing, Left, Right, Rotate left, Rotate right, Drop, Full Drop, Hold
             self.action_space = gym.spaces.Discrete(8)
@@ -50,7 +51,9 @@ class TetrisEnv(gym.Env):
             elif action == 7:  # Hold
                 self.game.board.hold_piece()
         elif self.action_mode == 1:
-            x, rotation = action
+            x, rotation, change = action
+            if change == 1:  #choose to change function
+                self.game.board.hold_piece()
             self.game.board.move_and_drop(x, rotation)
 
         rows = self.game.tick()
@@ -75,7 +78,10 @@ class TetrisEnv(gym.Env):
 
     def reset(self):
         """Starts a new game."""
-        self.game = Game(Board(10, 20))
+        if self.hold_mode == 0:
+            self.game = Game(Board(10, 20))
+        else:
+            self.game = Game(Board(10, 20, 1))
         return np.array(self.game.board.get_possible_states())
 
     def close(self):
