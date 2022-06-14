@@ -62,9 +62,13 @@ After thousands of episodes the AI has learned how to play Tetris a thousand tim
 ## How to run
 Run `run_human.py` if you'd like to play Tetris.
 
-Run `run_play_ai.py` if you'd like to see the AI play Tetris.
+Run `run_play_dqn.py` if you'd like to see the AI play Tetris without considering "Hold" action.
 
-Run `run_train_ai.py` if you'd like to train the AI.
+Run `run_train_dqn.py` if you'd like to train the AI without considering "Hold" action.
+
+Run `run_play_dqn_hold.py` if you'd like to see the AI play Tetris when considering "Hold" action.
+
+Run `run_train_dqn_hold.py` if you'd like to train the AI when considering "Hold" action.
 
 Run `run_performance.py` to see how many games and frames per second it has using randomized actions.
 
