@@ -1,7 +1,7 @@
 # Tetris
 Tetris with a Deep Q Network. 
 
-Play tetris with ai in original mode
+Play tetris with AI in original mode
 
 ![Deep Q Network playing Tetris](Original_mode_dqn.gif)
 
