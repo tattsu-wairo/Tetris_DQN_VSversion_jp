@@ -10,16 +10,24 @@ from gym_tetris.ai.DQN import DQN
 def load_reward():
     if not os.path.exists("./Rewards"):
 	    os.mkdir("./Rewards")
-    else:
-        if Path("./Rewards/DQN_rewards_hold.npy").is_file():
-            return np.load("./Rewards/DQN_rewards_hold.npy").tolist()
-        else:
-            return []
 
+    if Path("./Rewards/DQN_rewards_hold.npy").is_file():
+        return np.load("./Rewards/DQN_rewards_hold.npy").tolist()
+    else:
+        return []
+
+def load_score():
+    if not os.path.exists("./Scores"):
+	    os.mkdir("./Scores")
+
+    if Path("./Scores/DQN_scores_hold.npy").is_file():
+        return np.load("./Scores/DQN_scores_hold.npy").tolist()
+    else:
+        return []
 
 def main():
     env = gym.make("tetris-v1", action_mode=1, hold_mode=1)
-    network = DQN(epsilon=0.2259657422954923, hold_mode=1)
+    network = DQN(hold_mode=1)
     network.load()
 
     SEED = 50
@@ -28,14 +36,16 @@ def main():
     env.action_space.seed(SEED)
     
     total_rewards = load_reward()
+    total_scores = load_score()
 
     running = True
-    total_games = 3000
-    total_steps = 85199
+    total_games = 0
+    total_steps = 0
     
     while total_games < 5000:
         steps, rewards, scores = network.train(env, episodes=25)
         total_rewards.append(rewards)
+        total_scores.append(scores)
         
         total_games += len(scores)
         total_steps += steps
@@ -53,6 +63,7 @@ def main():
         print("==================")
 
     np.save("./Rewards/DQN_rewards_hold.npy", np.array(total_rewards))
+    np.save("./Scores/DQN_scores_hold.npy", np.array(total_scores))
 
     env.close()
 
