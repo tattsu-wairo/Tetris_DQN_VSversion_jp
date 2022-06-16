@@ -5,7 +5,7 @@ import argparse
 
 def initialize_plot():
     plt.figure(figsize=(10, 5))
-    plt.title('Tetris-DQN')
+    plt.title('Tetris-Q-learning')
     plt.xlabel('total games')
     plt.ylabel('rewards')
 
@@ -77,6 +77,40 @@ def DQN_Score_Hold():
     plt.show()
     plt.close()
 
+def Q_learning_Reward():
+    Q_learning_Rewards = np.load("./Rewards/Q_learning_rewards.npy").transpose()
+
+    Q_learning_avg = np.mean(Q_learning_Rewards, axis=1)
+    Q_learning_std = np.std(Q_learning_Rewards, axis=1)
+
+    initialize_plot()
+    
+    plt.plot([i for i in range(5000)], Q_learning_avg,
+             label='Q_learning', color='green')
+    plt.fill_between([i for i in range(5000)],
+                     Q_learning_avg+Q_learning_std, Q_learning_avg-Q_learning_std, facecolor='lightblue')
+    plt.legend(loc="best")
+    plt.savefig("./Graphs/Q_learning_Reward.png")
+    plt.show()
+    plt.close()
+
+def Q_learning_Score():
+    Q_learning_Scores = np.load("./Scores/Q_learning_scores.npy").transpose()
+
+    Q_learning_avg = np.mean(Q_learning_Scores, axis=1)
+    Q_learning_std = np.std(Q_learning_Scores, axis=1)
+
+    initialize_plot()
+    
+    plt.plot([i for i in range(5000)], Q_learning_avg,
+             label='Q_learning', color='green')
+    plt.fill_between([i for i in range(5000)],
+                     Q_learning_avg+Q_learning_std, Q_learning_avg-Q_learning_std, facecolor='lightblue')
+    plt.legend(loc="best")
+    plt.savefig("./Graphs/Q_learning_Score.png")
+    plt.show()
+    plt.close()
+
 def compare_reward():
     DQN_Rewards = np.load("./Rewards/DQN_rewards.npy")
     DQN_avg = np.mean(DQN_Rewards, axis=1)
@@ -114,6 +148,8 @@ if __name__ == "__main__":
     parser.add_argument("--DQN_score", action="store_true")
     parser.add_argument("--DQN_reward_hold", action="store_true")
     parser.add_argument("--DQN_score_hold", action="store_true")
+    parser.add_argument("--Q_learning_reward", action="store_true")
+    parser.add_argument("--Q_learning_score", action="store_true")
     parser.add_argument("--compare_reward", action="store_true")
     parser.add_argument("--compare_score", action="store_true")
     args = parser.parse_args()
@@ -130,6 +166,10 @@ if __name__ == "__main__":
         DQN_Reward_Hold()
     elif args.DQN_score_hold:
         DQN_Score_Hold()
+    elif args.Q_learning_reward:
+        Q_learning_Reward()
+    elif args.Q_learning_score:
+        Q_learning_Score()
     elif args.compare_reward:
         compare_reward()
     elif args.compare_score:
