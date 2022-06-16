@@ -3,11 +3,14 @@ import numpy as np
 import os
 import argparse
 
-def initialize_plot():
+def initialize_plot(mode):
     plt.figure(figsize=(10, 5))
     plt.title('Tetris-Q-learning')
     plt.xlabel('total games')
-    plt.ylabel('rewards')
+    if mode==0:
+        plt.ylabel('rewards')
+    else:
+        plt.ylabel('scores')
 
 def DQN_Reward():
     DQN_Rewards = np.load("./Rewards/DQN_rewards.npy")
@@ -15,7 +18,7 @@ def DQN_Reward():
     DQN_avg = np.mean(DQN_Rewards, axis=1)
     DQN_std = np.std(DQN_Rewards, axis=1)
 
-    initialize_plot()
+    initialize_plot(0)
 
     plt.plot([i * 25 for i in range(200)], DQN_avg,
              label='DQN_Rewards', color='blue')
@@ -32,7 +35,7 @@ def DQN_Score():
     DQN_avg = np.mean(DQN_Scores, axis=1)
     DQN_std = np.std(DQN_Scores, axis=1)
 
-    initialize_plot()
+    initialize_plot(1)
 
     plt.plot([i * 25 for i in range(200)], DQN_avg,
              label='DQN_Scores', color='green')
@@ -49,7 +52,7 @@ def DQN_Reward_Hold():
     DQN_avg = np.mean(DQN_Rewards, axis=1)
     DQN_std = np.std(DQN_Rewards, axis=1)
 
-    initialize_plot()
+    initialize_plot(0)
 
     plt.plot([i * 25 for i in range(200)], DQN_avg,
              label='DQN_Reward_Hold', color='orange')
@@ -66,7 +69,7 @@ def DQN_Score_Hold():
     DQN_avg = np.mean(DQN_Rewards, axis=1)
     DQN_std = np.std(DQN_Rewards, axis=1)
 
-    initialize_plot()
+    initialize_plot(1)
 
     plt.plot([i * 25 for i in range(200)], DQN_avg,
              label='DQN_Score_Hold', color='red')
@@ -116,7 +119,7 @@ def compare_reward():
     DQN_avg = np.mean(DQN_Rewards, axis=1)
     Hold_DQN_Rewards = np.load("./Rewards/DQN_rewards_hold.npy")
     Hold_DQN_avg = np.mean(Hold_DQN_Rewards, axis=1)
-    initialize_plot()
+    initialize_plot(0)
     plt.plot([i * 25 for i in range(200)], DQN_avg, label='DQN', color='blue')
     plt.plot([i * 25 for i in range(200)],
              Hold_DQN_avg, label='DQN_Hold', color='orange')
@@ -130,7 +133,7 @@ def compare_score():
     DQN_avg = np.mean(DQN_Rewards, axis=1)
     Hold_DQN_Rewards = np.load("./Scores/DQN_scores_hold.npy")
     Hold_DQN_avg = np.mean(Hold_DQN_Rewards, axis=1)
-    initialize_plot()
+    initialize_plot(1)
     plt.plot([i * 25 for i in range(200)], DQN_avg, label='DQN', color='green')
     plt.plot([i * 25 for i in range(200)],
              Hold_DQN_avg, label='DQN_Hold', color='red')
