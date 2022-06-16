@@ -307,7 +307,7 @@ class Board:
         self.can_hold = False
         return True
 
-    def get_possible_states(self, nine = True):
+    def get_possible_states(self):
         """Returns all possible states of the board with the corresponding action tuple.
 
         Tries out every possible way to turn and move the current piece.
@@ -344,7 +344,7 @@ class Board:
                         removed_rows.append((y, self.remove_row(y)))
 
                     # Save
-                    states.append(((column, rotation, 0), self.get_info(rows_cleared, nine)))
+                    states.append(((column, rotation, 0), self.get_info(rows_cleared)))
 
                     # Reset
                     for y, row in reversed(removed_rows):
