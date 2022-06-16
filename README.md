@@ -12,7 +12,7 @@ Hold Mode DQN
 ## How it works
 
 ### Reinforcement learning
-[Reinforcement learning](https://en.wikipedia.org/wiki/Reinforcement_learning) is used to determine what *action* should be taken that would maximize *reward* when given a *state*. 
+Reinforcement learning is used to determine what *action* should be taken that would maximize *reward* when given a *state*. 
 
 #### State
 
@@ -59,7 +59,9 @@ Slowly it will shift from mostly exploration to exploitation which means that th
 ## How to run
 Run `run_human.py` if you'd like to play Tetris.
 
-Run
+Run `run_play_pierre.py.py` if you'd like to see AI with Pierre Dellacherie algorithm.
+
+Run `Q-learning.py` if you'd like to train Q-learning agent.
 
 Run `run_play_dqn.py` if you'd like to see the AI play Tetris without considering "Hold" action.
 
