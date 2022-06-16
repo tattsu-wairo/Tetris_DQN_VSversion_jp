@@ -1,9 +1,9 @@
 # Tetris
 Tetris with a Deep Q Network. 
 
-In the GIF below the computer manages to clear 1000+ lines.
+Play tetris with AI in original mode
 
-![Deep Q Network playing Tetris](gameplay_ai.gif)
+![Deep Q Network playing Tetris](Original_mode_dqn.gif)
 
 ## How it works
 ### Reinforcement learning
