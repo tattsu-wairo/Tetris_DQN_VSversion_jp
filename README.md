@@ -1,22 +1,20 @@
 # Tetris
 Tetris with a Q-learning and Deep Q Network. 
 
-Play tetris with AI in baseline : Pierre Dellacherie Algorithm
-
+Original DQN
 
 ![Deep Q Network playing Tetris](Original_mode_dqn.gif)
 
+Hold Mode DQN
+
+![Deep Q Network playing Tetris](Hold_mode_dqn.gif)
+
 ## How it works
+
 ### Reinforcement learning
 [Reinforcement learning](https://en.wikipedia.org/wiki/Reinforcement_learning) is used to determine what *action* should be taken that would maximize *reward* when given a *state*. 
 
 #### State
-I experimented with two different state types to find the most suitable one.
-
-At first a two dimensional array of the board was used, but it didn't turn out to be feasible as the neural network had to be way more complex to be able to start detecting any patterns.
-
-Ultimately, it was decided to use a state based on the statistics of the board after a potential action. All predictions would be compared but the action with the best state would be used.
-The reason why some of the statistics below are chosen is due to Dellacherie's algorithm.
 
 | Name  | Description |
 | ---: | :--- |
@@ -57,11 +55,11 @@ At first the AI explores by selecting random actions.
 Every episode it will train itself with randomly selected experiences from previous games (and also applying Q-Learning).
 Slowly it will shift from mostly exploration to exploitation which means that the neural network will chose the actions.
 
-After thousands of episodes the AI has learned how to play Tetris a thousand times better than me.  
-
 
 ## How to run
 Run `run_human.py` if you'd like to play Tetris.
+
+Run
 
 Run `run_play_dqn.py` if you'd like to see the AI play Tetris without considering "Hold" action.
 
