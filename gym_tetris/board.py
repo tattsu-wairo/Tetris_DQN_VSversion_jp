@@ -399,7 +399,7 @@ class Board:
             self.piece = cur_piece_buf
         return states
 
-    def get_info(self, rows_cleared, nine = True):
+    def get_info(self, rows_cleared):
         """Returns the state of the board using statistics.
 
          0: Rows cleared
@@ -422,27 +422,17 @@ class Board:
             eroded_piece_cells = 0
             landing_height = 0
 
-        if nine:
-            return [
-                len(rows_cleared),
-                self.get_bumpiness(),
-                self.get_hole_count(),
-                landing_height,
-                self.get_row_transitions(),
-                self.get_column_transitions(),
-                self.get_cumulative_wells(),
-                eroded_piece_cells,
-                self.get_aggregate_height(),
-            ]
-        else:
-            return [
-                landing_height,
-                eroded_piece_cells,
-                self.get_row_transitions(),
-                self.get_column_transitions(),
-                self.get_hole_count(),
-                self.get_cumulative_wells()
-            ]
+        return [
+            len(rows_cleared),
+            self.get_bumpiness(),
+            self.get_hole_count(),
+            landing_height,
+            self.get_row_transitions(),
+            self.get_column_transitions(),
+            self.get_cumulative_wells(),
+            eroded_piece_cells,
+            self.get_aggregate_height(),
+        ]
 
     def get_cleared_rows(self):
         """Returns the the amount of rows cleared."""
