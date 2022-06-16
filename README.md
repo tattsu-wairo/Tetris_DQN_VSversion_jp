@@ -1,7 +1,8 @@
 # Tetris
-Tetris with a Deep Q Network. 
+Tetris with a Q-learning and Deep Q Network. 
 
-Play tetris with AI in original mode
+Play tetris with AI in baseline : Pierre Dellacherie Algorithm
+
 
 ![Deep Q Network playing Tetris](Original_mode_dqn.gif)
 
