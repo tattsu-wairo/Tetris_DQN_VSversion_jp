@@ -31,6 +31,15 @@ class TetrisEnv(gym.Env):
                 gym.spaces.Discrete(10),  # X
                 gym.spaces.Discrete(4),  # Rotation
             ))
+        # add observation_space for Q-learning to call
+        self.observation_space = gym.spaces.Tuple((
+            gym.spaces.Discrete(20), # landing Height
+            gym.spaces.Discrete(4 * 4), # Eroded piece cells
+            gym.spaces.Discrete(9 * 20), # row transitions
+            gym.spaces.Discrete(19 * 10), # column transitions
+            gym.spaces.Discrete(10 * 20), # number of holes
+            gym.spaces.Discrete(36) # well sums
+        ))
 
     def step(self, action):
         """Performs one step/frame in the game and returns the observation, reward and if the game is over."""
