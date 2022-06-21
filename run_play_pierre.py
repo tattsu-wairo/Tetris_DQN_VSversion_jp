@@ -1,6 +1,6 @@
 import gym
 import pygame
-import gym_tetris
+import gym_tetris_6state
 
 from Pierre_Dellacherie import Agent
 

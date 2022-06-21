@@ -4,7 +4,7 @@ import gym
 import os
 from tqdm import tqdm
 import pygame
-import gym_tetris
+import gym_tetris_6state
 import random
 
 class Agent():
