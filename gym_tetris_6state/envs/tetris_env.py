@@ -6,9 +6,9 @@ import gym
 import numpy as np
 import pygame
 
-from gym_tetris.board import Board
-from gym_tetris.game import Game
-from gym_tetris.view import View
+from gym_tetris_6state.board import Board
+from gym_tetris_6state.game import Game
+from gym_tetris_6state.view import View
 
 WIN_WIDTH = 480
 WIN_HEIGHT = 526

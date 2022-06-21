@@ -1,4 +1,4 @@
-from gym_tetris.board import Board
+from gym_tetris_6state.board import Board
 
 
 class Game:

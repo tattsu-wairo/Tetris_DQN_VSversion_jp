@@ -1,1 +1,1 @@
-from gym_tetris.envs.tetris_env import TetrisEnv
+from gym_tetris_6state.envs.tetris_env import TetrisEnv
