@@ -6,14 +6,21 @@ import os
 import random
 import numpy as np
 import tensorflow as tf
+import gc
+import sys
+# from memory_profiler import profile
+# from tensorboardX import SummaryWriter
+from keras.callbacks import ModelCheckpoint
 
+MODEL_DIR = os.path.join(os.path.dirname(__file__), 're_train_data')
 WEIGHT_PATH = os.path.join(os.path.dirname(__file__), 'weights.h5')
-WEIGHT_PATH_HOLD = os.path.join(os.path.dirname(__file__), 'weights_hold.h5')
+LOAD_WEIGHT_PATH_HOLD = os.path.join(os.path.dirname(__file__), 'new_layers_new_state_modelA_150000')
+SAVE_WEIGHT_PATH_HOLD = os.path.join(os.path.dirname(__file__), 'new_layers_new_state_modelB_150000')
 IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'model.png')
 LOG_DIR = os.path.join(os.path.dirname(__file__), 'logs')
 
 class ReplayBuffer:
-    def __init__(self, capacity=20000):
+    def __init__(self, capacity=50_000):
         self.memory = []
         self.buffer_size = capacity
     
@@ -26,7 +33,7 @@ class ReplayBuffer:
         return random.sample(self.memory, size)
 
 class DQN:
-    def __init__(self, state_size=9, gamma=0.99, epsilon=1, epsilon_min=0.0001, epsilon_decay=0.9995, hold_mode=0):
+    def __init__(self, state_size=10, gamma=0.99, epsilon=1, epsilon_min=0.0001, epsilon_decay=0.9995, hold_mode=0, train = True):
         
         self.state_size = state_size
         self.model = self._create_model()
@@ -43,6 +50,14 @@ class DQN:
                                                           histogram_freq=1000,
                                                           write_graph=True,
                                                           write_images=True)
+        if not os.path.exists(MODEL_DIR):  # ディレクトリが存在しない場合、作成する。
+            os.makedirs(MODEL_DIR)
+        self.checkpoint = ModelCheckpoint(filepath=os.path.join(MODEL_DIR, "model-{epoch:02d}.h5"), save_best_only=False)
+        self.history = None
+        # if train:
+        #     self.writer = SummaryWriter(logdir=LOG_DIR)
+        # self.episode = 0
+        # self.checkpoint = ModelCheckpoint(filepath=os.path.join(LOG_DIR, "model-{epoch:02d}.h5"), save_best_only=True)
 
     def _create_model(self):
         """
@@ -53,9 +68,16 @@ class DQN:
         """
 
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Dense(64, input_dim=self.state_size, activation='relu'),
-            tf.keras.layers.Dense(64, activation='relu'),
-            tf.keras.layers.Dense(32, activation='relu'),
+            tf.keras.layers.Dense(64, input_dim=self.state_size),
+            tf.keras.layers.BatchNormalization(),
+            # tf.keras.layers.Activation(tf.keras.layers.LeakyReLU(alpha=0.1)),
+            tf.keras.layers.Activation("relu"),
+            tf.keras.layers.Dense(64, input_dim=self.state_size),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Activation("relu"),
+            tf.keras.layers.Dense(32, input_dim=self.state_size),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Activation("relu"),
             tf.keras.layers.Dense(1, activation='linear'),
         ])
 
@@ -103,10 +125,12 @@ class DQN:
         
         """
         y = np.array(states)
-        values = self.model.predict(y)
+        values = self.model.predict(y,verbose=0)
+        # values = self.model.predict_on_batch(y)
+        
         return [value[0] for value in values]
     
-    def learn(self, batch_size=512, epochs=1):
+    def learn(self, batch_size=1024, epochs=1):
         """
         -- Learn experience and adjust the weights(value).
 
@@ -133,11 +157,13 @@ class DQN:
             train_x.append(previous_state)
             train_y.append(q)
 
-        self.model.fit(np.array(train_x), np.array(train_y), batch_size=len(train_x), verbose=0,
-                       epochs=epochs, callbacks=[self.tensorboard])
+        self.history = self.model.fit(np.array(train_x), np.array(train_y), batch_size=int(len(train_x)/2), verbose=0,
+                       epochs=epochs, callbacks=[self.checkpoint])
+        # self.writer.add_scalar("loss",history.history["loss"],self.episode)
+        # self.episode += 1
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
         
-    def train(self, env, episodes=1):
+    def train(self, env, episodes = 1):
         """
         -- Trains the Neural Network for n episodes.
         -- In every episode, it trains the model with the 20000 most recent experiences.
@@ -148,9 +174,9 @@ class DQN:
         scores = []
         steps = 0
 
-        for _ in tqdm(range(episodes)):
+        for _ in range(episodes):
             obs = env.reset()
-            previous_state = env.game.board.get_info([])
+            previous_state = env.game.board.get_info([],0)
             done = False
             total_reward = 0
             count = 0
@@ -166,9 +192,10 @@ class DQN:
             rewards.append(total_reward)
             scores.append(env.game.score)
 
-            self.learn()
 
-        return [steps, rewards, scores]
+        self.learn()
+
+        return [steps,rewards,scores]
 
     def load(self):
         """Load the weights."""
@@ -176,8 +203,10 @@ class DQN:
             if Path(WEIGHT_PATH).is_file():
                 self.model.load_weights(WEIGHT_PATH)
         else:
-            if Path(WEIGHT_PATH_HOLD).is_file():
-                self.model.load_weights(WEIGHT_PATH_HOLD)
+            if Path(LOAD_WEIGHT_PATH_HOLD).is_dir():
+                # self.model.load_weights(LOAD_WEIGHT_PATH_HOLD)
+                # self.model = tf.saved_model.load(LOAD_WEIGHT_PATH_HOLD)
+                self.model = tf.keras.models.load_model(LOAD_WEIGHT_PATH_HOLD)
 
     def save(self):
         """Save the weights."""
@@ -187,10 +216,12 @@ class DQN:
 
             self.model.save_weights(WEIGHT_PATH)
         else:
-            if not os.path.exists(os.path.dirname(WEIGHT_PATH_HOLD)):
-                os.makedirs(os.path.dirname(WEIGHT_PATH_HOLD))
+            if not os.path.exists(os.path.dirname(SAVE_WEIGHT_PATH_HOLD)):
+                os.makedirs(os.path.dirname(SAVE_WEIGHT_PATH_HOLD))
 
-            self.model.save_weights(WEIGHT_PATH_HOLD)
+            # self.model.save_weights(SAVE_WEIGHT_PATH_HOLD)
+            # tf.saved_model.save(self.model, SAVE_WEIGHT_PATH_HOLD)
+            tf.keras.models.save_model(self.model, SAVE_WEIGHT_PATH_HOLD)
     
     def seed(self, seed=20):
         '''

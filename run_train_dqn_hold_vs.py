@@ -1,34 +1,32 @@
 import gym
-import gym_tetris
+
 import os
 import numpy as np
 
 from pathlib import Path
 from statistics import mean, median
 from gym_tetris.ai.DQN import DQN
-
+import tensorflow as tf
 import time
 import datetime
 import json
 import requests
-from gym_tetris.ai.DQN import SAVE_WEIGHT_PATH_HOLD
+from gym_tetris.ai.DQN import WEIGHT_PATH_HOLD
 from gym_tetris.envs.tetris_env import WEIGHT_PATH_HOLD_ENEMY
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 webhook_url = 'https://discord.com/api/webhooks/1049978183665066064/gN0LPx_z9Ile4Q_Y3FkkWMobDnS58OS8bFwplSq_u0pZIZrmJYFlv32JMCyj3ZscwYhY'
 main_content = {'content': '送るテキスト'}
 headers = {'Content-Type': 'application/json'}
 
-LEARN_GAME = 4500
-
-
+LEARN_GAME = 4750
 def load_reward():
     if not os.path.exists("./Rewards"):
         os.mkdir("./Rewards")
 
-    if Path("./Rewards/DQN_rewards_hold_newState.npy").is_file():
-        return np.load("./Rewards/DQN_rewards_hold_newState.npy").tolist()
+    if Path("./Rewards/DQN_rewards_hold_vs.npy").is_file():
+        return np.load("./Rewards/DQN_rewards_hold_vs.npy").tolist()
     else:
         return []
 
@@ -37,8 +35,8 @@ def load_score():
     if not os.path.exists("./Scores"):
         os.mkdir("./Scores")
 
-    if Path("./Scores/DQN_scores_hold_newState.npy").is_file():
-        return np.load("./Scores/DQN_scores_hold_newState.npy").tolist()
+    if Path("./Scores/DQN_scores_hold_vs.npy").is_file():
+        return np.load("./Scores/DQN_scores_hold_vs.npy").tolist()
     else:
         return []
 
@@ -70,29 +68,21 @@ def main():
         total_games += len(scores)
         total_steps += steps
         network.save()
-
-        # End
-        middle_time = time.perf_counter()
-        # PElapsedTime
-        elapsed_time = middle_time - start_time
-        td = datetime.timedelta(seconds=elapsed_time)
-
         print("==================")
         print("* Total Games: ", total_games)
         print("* Total Steps: ", total_steps)
         print("* Epsilon: ", network.epsilon)
         print("*")
         print("* Average: ", sum(rewards) / len(rewards),
-            "/", sum(scores) / len(scores))
+              "/", sum(scores) / len(scores))
         print("* Median: ", median(rewards), "/", median(scores))
         print("* Mean: ", mean(rewards), "/", mean(scores))
         print("* Min: ", min(rewards), "/", min(scores))
         print("* Max: ", max(rewards), "/", max(scores))
-        print("Total Time: ", td)
         print("==================")
         content_text = f"""
         ==================
-        * File Name: {SAVE_WEIGHT_PATH_HOLD}
+        * {WEIGHT_PATH_HOLD} vs {WEIGHT_PATH_HOLD_ENEMY}
         * Total Games: {total_games}
         * Total Steps: {total_steps}
         * Epsilon: {network.epsilon}
@@ -103,16 +93,15 @@ def main():
         * Min: {min(rewards)} / {min(scores)}
         * Max: {max(rewards)} / {max(scores)}
         =================="""
-        # main_content = {'content': content_text}
-        # if total_games % (LEARN_GAME/15) == 0:
+        main_content = {'content': content_text}
+        # if total_games % 100 == 0:
         #     try:
-        #         requests.post(webhook_url, json.dumps(
-        #             main_content), headers=headers)
+        #         requests.post(webhook_url, json.dumps(main_content), headers=headers)
         #     except:
         #         pass
 
-    np.save("./Rewards/DQN_rewards_hold_newState.npy", np.array(total_rewards))
-    np.save("./Scores/DQN_scores_hold_newState.npy", np.array(total_scores))
+    np.save("./Rewards/DQN_rewards_hold_vs.npy", np.array(total_rewards))
+    np.save("./Scores/DQN_scores_hold_vs.npy", np.array(total_scores))
 
     # End
     end_time = time.perf_counter()
@@ -121,7 +110,9 @@ def main():
     td = datetime.timedelta(seconds=elapsed_time)
     print(td)
     content_text = f"""
-* File Name: {SAVE_WEIGHT_PATH_HOLD}
+* Player1(training): {WEIGHT_PATH_HOLD}
+* vs
+* Player2(enemy): {WEIGHT_PATH_HOLD_ENEMY}
 * Total Games: {total_games}
 * Total Steps: {total_steps}
 * Total Times: {td}

@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+
 def get_random_bag():
     """Returns a bag with unique pieces. (Bag randomizer)"""
     random_shapes = list(SHAPES)
@@ -157,7 +158,8 @@ class Piece:
             begin_x = self.x - round(self.shape.width / 2)
             begin_y = self.y
             shape_coords = self.shape.get_shape_coords(self.rotation)
-            self.shape_coords = [(begin_x + offset_x, begin_y + offset_y) for offset_y, offset_x in shape_coords]
+            self.shape_coords = [(begin_x + offset_x, begin_y + offset_y)
+                                 for offset_y, offset_x in shape_coords]
         return self.shape_coords
 
 
@@ -174,7 +176,9 @@ class Board:
         self.can_hold = True
         self.bag = get_random_bag()
         self.create_piece()
-        self.hold_mode = hold_mode  #whether considering hold when trainning, playing ai.
+        self.attackedlist = []
+        # whether considering hold when trainning, playing ai.
+        self.hold_mode = hold_mode
 
     def create_piece(self):
         """The next piece becomes the current piece and spawn it on the board."""
@@ -277,7 +281,7 @@ class Board:
             return False
 
         self.piece.rotate(rotation)
-        
+
         return self.can_move_piece(0, 0) and self.move_piece(-self.piece.x + x) and self.drop_piece_fully()
 
     def drop_piece_fully(self):
@@ -307,7 +311,7 @@ class Board:
         self.can_hold = False
         return True
 
-    def get_possible_states(self):
+    def get_possible_states(self,combo):
         """Returns all possible states of the board with the corresponding action tuple.
 
         Tries out every possible way to turn and move the current piece.
@@ -322,21 +326,21 @@ class Board:
             return []
 
         states = []
-        
-        
-        
-        #1. insert the state of current piece
+
+        # 1. insert the state of current piece
         last_piece = self.piece_last
 
         X = self.piece.x
         Y = self.piece.y
 
-        
         for rotation in range(self.piece.shape.rotations):
             for column in range(self.columns + 1):
-                piece = Piece(self.piece.x, self.piece.y, self.piece.shape, self.piece.rotation)
+                piece = Piece(self.piece.x, self.piece.y,
+                              self.piece.shape, self.piece.rotation)
 
                 # Execute
+                x = piece.x
+                y = piece.y
                 if self.move_and_drop(column, rotation):
                     rows_cleared = self.get_cleared_rows()
                     removed_rows = []
@@ -344,7 +348,12 @@ class Board:
                         removed_rows.append((y, self.remove_row(y)))
 
                     # Save
-                    states.append(((column, rotation, 0), self.get_info(rows_cleared)))
+                    if len(rows_cleared) > 0:
+                        ren = combo+1
+                    else:
+                        ren = 0
+                    states.append(
+                        ((column, rotation, 0), self.get_info(rows_cleared,ren)))
 
                     # Reset
                     for y, row in reversed(removed_rows):
@@ -356,21 +365,21 @@ class Board:
                 self.piece = piece
                 self.piece_last = last_piece
 
-        #record current piece
+        # record current piece
         cur_piece_buf = self.piece
 
-        #2. insert the state of changable piece
+        # 2. insert the state of changable piece
         """
         construct another two layer for loop and double the possible state
         1. self.piece_holding == None (choose next piece)
         2. otherwise (can choose hold piece) 
         """
         if self.hold_mode:
-            if self.piece_holding == None:    
+            if self.piece_holding == None:
                 self.piece = self.piece_next
             else:
                 self.piece = self.piece_holding
-            
+
             for rotation in range(self.piece.shape.rotations):
                 for column in range(self.columns + 1):
                     piece = Piece(X, Y, self.piece.shape, self.piece.rotation)
@@ -383,7 +392,12 @@ class Board:
                             removed_rows.append((y, self.remove_row(y)))
 
                         # Save
-                        states.append(((column, rotation, 1), self.get_info(rows_cleared)))
+                        if len(rows_cleared) > 0:
+                            ren = combo+1
+                        else:
+                            ren = 0
+                        states.append(
+                            ((column, rotation, 1), self.get_info(rows_cleared,ren)))
 
                         # Reset
                         for y, row in reversed(removed_rows):
@@ -394,12 +408,12 @@ class Board:
 
                     self.piece = piece
                     self.piece_last = last_piece
-        
-            #reset to original piece
+
+            # reset to original piece
             self.piece = cur_piece_buf
         return states
 
-    def get_info(self, rows_cleared):
+    def get_info(self, rows_cleared,ren):
         """Returns the state of the board using statistics.
 
          0: Rows cleared
@@ -411,16 +425,21 @@ class Board:
          6: Cumulative wells
          7: Eroded piece cells
          8: Aggregate height
+         9: REN
 
         :rtype: Integer array
         """
         if self.piece_last is not None:
             last_piece_coords = self.piece_last.get_shape_coords()
-            eroded_piece_cells = len(rows_cleared) * sum(y in rows_cleared for x, y in last_piece_coords)
-            landing_height = 0 if self.piece_last is None else 1 + self.rows - max(y for x, y in last_piece_coords)
+            eroded_piece_cells = len(
+                rows_cleared) * sum(y in rows_cleared for x, y in last_piece_coords)
+            landing_height = 0 if self.piece_last is None else 1 + \
+                self.rows - max(y for x, y in last_piece_coords)
         else:
             eroded_piece_cells = 0
             landing_height = 0
+        
+        self.get_peak_height()
 
         return [
             len(rows_cleared),
@@ -429,14 +448,46 @@ class Board:
             landing_height,
             self.get_row_transitions(),
             self.get_column_transitions(),
-            self.get_cumulative_wells(),
+            # self.get_cumulative_wells(),
+            self.get_sum_wells(),
             eroded_piece_cells,
             self.get_aggregate_height(),
+            ren,
         ]
 
     def get_cleared_rows(self):
         """Returns the the amount of rows cleared."""
         return list(filter(lambda y: self.is_row(y), range(self.rows)))
+
+    def get_rised_rows(self):
+        """せりあがるお邪魔ブロックのリストを作成"""
+        rows = []
+        if len(self.attackedlist) == 0:
+            return rows
+
+        x = 0  # 直前の穴の位置を記録
+        for i, rise in enumerate(self.attackedlist):
+            for j in range(rise):
+                # 受けた火力の一段目はランダムな位置に穴
+                if i == 0 and j == 0:
+                    x = random.randrange(self.columns)
+                # 受けた火力間では90%の確率でランダムな位置に穴
+                elif j == 0:
+                    if random.random() < 0.9:
+                        x = random.randrange(self.columns)
+                # 一度に受けた火力間では30％の確率でランダムな位置に穴
+                elif random.random() < 0.3:
+                    x = random.randrange(self.columns)
+
+                # お邪魔ブロックのリストを作成
+                row = []
+                for index in range(self.columns):
+                    if index == x:
+                        row.append(0)
+                    else:
+                        row.append(8)
+                rows.append(row)
+        return rows
 
     def get_row_transitions(self):
         """Returns the number of horizontal cell transitions."""
@@ -500,7 +551,8 @@ class Board:
             for x, code in enumerate(row):
                 if code == 0:
                     well = False
-                    right_empty = self.columns > x + 1 >= 0 and self.pieces_table[y][x + 1] == 0
+                    right_empty = self.columns > x + \
+                        1 >= 0 and self.pieces_table[y][x + 1] == 0
                     if left_empty or right_empty:
                         well = True
                     wells[x] = 0 if well else wells[x] + 1
@@ -508,6 +560,38 @@ class Board:
                 else:
                     left_empty = False
         return sum(wells)
+    
+    def get_sum_wells(self):
+        wells = []
+        peaks = self.get_peak_height()
+        for x in range(len(peaks)):
+            if x == 0:
+                w = peaks[1]-peaks[0]
+                w = w if w>0 else 0
+                wells.append(w)
+            elif x == len(peaks)-1:
+                w = peaks[-2]-peaks[-1]
+                w = w if w>0 else 0
+                wells.append(w)
+            else:
+                w1 = peaks[x - 1] - peaks[x]
+                w2 = peaks[x + 1] - peaks[x]
+                w1 = w1 if w1 > 0 else 0
+                w2 = w2 if w2 > 0 else 0
+                w = w1 if w1 >= w2 else w2
+                wells.append(w)
+        return sum(wells)
+    
+    def get_peak_height(self):
+        peaks = []
+        for x in range(self.columns):
+            for y in range(self.rows):
+                if self.pieces_table[y][x] != 0:
+                    peaks.append(self.rows-y)
+                    break
+            peaks.append(0)
+        return peaks
+
 
     def get_aggregate_height(self):
         """Returns the sum of the heights of each column."""

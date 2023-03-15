@@ -2,9 +2,11 @@ import gym
 import pygame
 import gym_tetris
 import numpy as np
+import os
 
 from gym_tetris.ai.DQN import DQN
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 def main():
     env = gym.make("tetris-v1", action_mode=1)

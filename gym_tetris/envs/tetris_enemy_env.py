@@ -9,32 +9,21 @@ from gym_tetris.board import Board
 from gym_tetris.game import Game
 from gym_tetris.view import View
 from gym_tetris.ai.DQN import DQN
-from gym_tetris.envs.tetris_enemy_env import TetrisEnemyEnv
 
 from pathlib import Path
-import sys
-import tensorflow as tf
 
+# WIN_WIDTH = 480
 WIN_WIDTH = 1000
 WIN_HEIGHT = 526
-WEIGHT_PATH_HOLD_ENEMY = os.path.join(os.path.dirname(__file__), 'MODEL_B_50000_03')
 
-class TetrisEnv(gym.Env):
+
+class TetrisEnemyEnv(gym.Env):
+    """プレイヤー2(敵)のクラス"""
     metadata = {
         'render.modes': ['human']
     }
-    # 敵のモデルを読み込む
-    
-    # ENEMY_MODEL: DQN = DQN(
-    #     gamma=1, epsilon=0, epsilon_min=0, epsilon_decay=0, hold_mode=1)
-    # if Path(WEIGHT_PATH_HOLD_ENEMY).is_dir():
-    #     ENEMY_MODEL.model= tf.keras.models.load_model(WEIGHT_PATH_HOLD_ENEMY)
-    # else:
-    #     sys.exit()
 
-    def __init__(self, action_mode=0, hold_mode=0):
-        # self.enemy_env = TetrisEnemyEnv(action_mode=1, hold_mode=1)
-        # self.obs = self.enemy_env.reset()
+    def __init__(self, action_mode=1, hold_mode=0):
         self.view = None
         self.game = None
         self.action_mode = action_mode
@@ -72,23 +61,8 @@ class TetrisEnv(gym.Env):
                 self.game.board.hold_piece()
             self.game.board.move_and_drop(x, rotation)
 
-        player1_attack = []
-        player2_attack = []
-
-        # action, state = TetrisEnv.ENEMY_MODEL.choose_action(self.obs)
-        # self.obs, _reward, _done, info_enemy = self.enemy_env.step(action)
-        
-        player1_attack = self.game.send_attack()
-        # player2_attack = self.enemy_env.game.send_attack()
-
-        # self.game.attacked.extend(player2_attack)
-        # self.enemy_env.game.attacked.extend(player1_attack)
-
-
         rows = self.game.tick()
         rows_count = len(rows)
-        rows_count_enemy = 0
-        # rows_count_enemy = info_enemy['clear_line']
         done = self.game.board.is_game_over()
 
         reward = 1
@@ -102,29 +76,12 @@ class TetrisEnv(gym.Env):
         elif rows_count == 4:
             reward += 1200
 
-        REN_BONUS_LIST = (0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5)
-        if self.game.combo >= len(REN_BONUS_LIST)-1:
-            reward += REN_BONUS_LIST[len(REN_BONUS_LIST)-1] * 300
-        elif self.game.combo != 0:
-            reward += REN_BONUS_LIST[self.game.combo-1] * 10
-        
-
-        winner = None
-
         if done:
             reward -= 5
-            winner = "プレイヤー2"
-        # if _done:
-        #     reward += 2000
-        #     winner = "プレイヤー1"
 
-        # if done or _done:
-        #     done = True
-
-        return np.array(self.game.board.get_possible_states(self.game.combo)), reward, done, {"winner":winner,"clear_line":rows_count,"clear_line_enemy":rows_count_enemy,"attack1":player1_attack,"attack2":player2_attack}
+        return np.array(self.game.board.get_possible_states(self.game.combo)), reward, done, {"clear_line":rows_count}
 
     def reset(self):
-        # self.obs = self.enemy_env.reset()
         """Starts a new game."""
         if self.hold_mode == 0:
             self.game = Game(Board(10, 20))
@@ -148,8 +105,7 @@ class TetrisEnv(gym.Env):
             pygame.display.set_caption("Tetris")
             self.view = View(win, font)
 
-        # self.view.draw(self.game, self.enemy_env.game)
-        self.view.draw(self.game)
+        self.view.draw(self.game,self.enemy_env.game)
 
     def seed(self, seed=None):
         """Set the random seed for the game."""
