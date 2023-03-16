@@ -11,6 +11,10 @@ Original Hold Mode DQN
 
 ![Deep Q Network playing Tetris](Hold_mode_dqn.gif)
 
+対戦環境でのテトリスAI同士の対決
+
+![対戦環境でのテトリスAI同士の対決](TetrisAI_vs.gif)
+
 ネットワーク構造
 
 ![Network](gym_tetris/ai/model.png)
@@ -83,21 +87,121 @@ Q-Learningを使うことで将来の報酬を高めるようにするため、�
 
 ## 実行方法
 
-テトリスをプレイしたい場合は `run_human.py` を実行します。
+### 仮想環境の作成
 
-Pierre DellacherieアルゴリズムによるAIを見たい場合は `run_play_pierre.py.py` を実行してください。
+Python3の標準ライブラリであるvenvで仮想環境を作成する
 
-Q-learningエージェントを学習させたい場合は `Q-learning.py`を実行してください。
+Tetris_DQN_VSversion_jpのディレクトリ内で以下のコマンドを入力してください。
 
-AIが「Hold」アクションを考慮せずにテトリスをプレイするのを見たい場合は `run_play_dqn.py` を実行します。
+```ps1
+python -m venv .venv
+```
 
-Hold "アクションを考慮せずにAIを訓練したい場合は `run_train_dqn.py` を実行します。
+`.venv`のところは好きな文字列でもいいです。
 
-Hold "アクションを考慮したAIによるテトリスプレイを見たい場合は `run_play_dqn_hold.py` を実行します。
+### 仮想環境への切り替え
 
-Hold "アクションを考慮したAIをトレーニングしたい場合は、`run_train_dqn_hold.py`を実行します。
+### コマンドプロンプト
 
-run_performance.py`を実行して、ランダムなアクションを使用した場合のゲーム数やフレーム数/秒を確認します。
+作成した仮想環境 .venv ディレクトリにある Scripts\activate.bat を実行します
+
+```cmd
+.venv\Scripts\activate.bat
+```
+
+### PowerShell
+
+仮想環境を利用する前に、PowerShellでスクリプトの実行を許可しておきます。PowerShellを起動し、次のコマンドを実行します。
+
+```ps1
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+```
+
+このコマンドは、一番最初に一回だけ実行してください。2回目以降は不要です。
+
+この設定がない場合、つぎのようなエラーが発生する場合があります。
+
+```ps1
+.\.venv\Scripts\Activate.ps1 : このシステムではスクリプトの実行が無効になっているため、
+ファイル C:\Users\Tetris_DQN_VSversion_jp\.venv\Scripts\Activate.ps1 を読み込むことができません。
+詳細については、「about_Execution_Policies」(https://go.microsoft.com/fwlink/?LinkID=135170)
+を参照してください。
+発生場所 行:1 文字:1
++ .\venv\Scripts\Activate.ps1
++ ~~~~~~
+    + CategoryInfo          : セキュリティ エラー: (: ) []、PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+```
+
+次に、作成した仮想環境 .venv ディレクトリにある Scripts\activate.ps1 を実行します。
+
+```ps1
+.venv\Scripts\activate.ps1
+```
+
+コマンド プロンプトの先頭に (.venv) と表示され、仮想環境で実行中であることを示します。
+
+### モジュールのインストール
+
+仮想環境を使用中にpipを使って必要なパッケージなどをインストールします。
+
+```ps1
+python -m pip install -r requirements.txt
+```
+
+必要なパッケージなどはrequirements.txtに記載をしていますが、抜けがあるかもしれません。
+
+バージョン指定しているものはそのバージョンで動かすことをお勧めします。しかし、公式からは推奨されていることではないので、プログラムを大幅に変更することができる方は最新バージョンに合わせたプログラムの書き方に変更して使用していただけるとよろしいかと思います。
+
+### 実行
+
+実行したいファイルを指定して実行します。
+
+```ps1
+python run_play.py
+```
+
+snowycornさんのブランチにある一部pythonファイルは自分のプロジェクトでは使わなかったので削除しています。
+
+**学習させたモデルは大変申し訳ないのですが、実装の都合上`Tetris_DQN_VSversion_jp`ディレクトリ直下と`Tetris_DQN_VSversion_jp/gym_tetris/envs`ディレクトリのそれぞれにいれてください。`Tetris_DQN_VSversion_jp/gym_tetris/envs`内に学習モデルがないと対戦ができません。**
+
+#### テストプレイ
+
+`run_play.py`を実行すると学習させたモデルを動かすことができます。
+初期状態ではモデルCを１人プレイ用の環境で動かします。
+
+対戦用に切り替える場合は [`tetris_env.py`](gym_tetris/envs/tetris_env.py) ファイル内のコメントアウトしているコードをアンコメントしてください。
+説明用のコメントアウトもありますので、お手数ですが、ご自身で見て判断お願いいたします。
+
+また、アンコメントすると[`tetris_env.py`](gym_tetris/envs/tetris_env.py) ファイル内のrender関数でdraw()が二つ呼ばれてしまいますので、１人用の場合は`self.view.draw(self.game)`だけアンコメントし、対戦用の場合は`self.view.draw(self.game, self.enemy_env.game)`だけアンコメントしてください。
+
+#### 学習
+
+`train_game.py`を実行すると指定したファイル名でモデルを学習させることができます。
+
+１人用か対戦用かは前述した[`tetris_env.py`](gym_tetris/envs/tetris_env.py) ファイルの内容によります。
+
+詳しいことについては[`train_game.py`](train_game.py)内のコメントアウトで記載しています。
+
+学習ステップ数やモデルの保存する際の名前などを変更できるようにしています。
+
+### 仮想環境の終了
+
+仮想環境の使用を終え、通常の状態に復帰するときは、`deactivate`コマンドを実行します。
+
+```ps1
+deactivate
+```
+
+## 補足
+
+DQNの実装については[`DQN.py`](gym_tetris/ai/DQN.py)で確認できます。ネットワーク構造もここで変更可能です。
+
+テトリスの回転や盤面管理については[`game.py`](gym_tetris/game.py)で確認できます。
+
+点数計算や火力計算については[`board.py`](gym_tetris/board.py)で確認できます。
+
+テトリスの描画については[`view.py`](gym_tetris/view.py)で確認できます。
 
 ## リンク
 
