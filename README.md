@@ -1,4 +1,5 @@
 # Tetris
+
 snowycornさんのプログラムをお借りして、対戦用環境で学習できるようにしています
 Deep-Q-Networkを使用した深層強化学習をしています
 
@@ -9,6 +10,10 @@ Original DQN
 Original Hold Mode DQN
 
 ![Deep Q Network playing Tetris](Hold_mode_dqn.gif)
+
+ネットワーク構造
+
+![Network](gym_tetris/ai/model.png)
 
 ## How it works
 
@@ -31,6 +36,7 @@ Original Hold Mode DQN
 | 消去ブロック数  | 消去ライン数 × 10  |
 
 #### 報酬
+
 報酬は基本的なテトリスのスコアと同じくらいの比率で与えています。プレイヤーが生き続ける限り報酬を与え、負けると報酬が減ります。
 
 | 名前  | 報酬 |
@@ -67,7 +73,6 @@ Q-Learningを使用しなかった場合、ニューラルネットワークは�
 <解釈>
 Q-Learningを使うことで将来の報酬を高めるようにするため、ゲームオーバーになりにくくなる。
 
-
 ### Training
 
 <以下原文翻訳>
@@ -76,25 +81,26 @@ Q-Learningを使うことで将来の報酬を高めるようにするため、�
 エピソードごとに、過去のゲームからランダムに選んだ経験（Q-Learningも適用）を使って自己訓練します。
 徐々に、探索型から探索型に移行し、ニューラルネットワークが行動を選択するようになります。
 
+## 実行方法
 
-## How to run
-Run `run_human.py` if you'd like to play Tetris.
+テトリスをプレイしたい場合は `run_human.py` を実行します。
 
-Run `run_play_pierre.py.py` if you'd like to see AI with Pierre Dellacherie algorithm.
+Pierre DellacherieアルゴリズムによるAIを見たい場合は `run_play_pierre.py.py` を実行してください。
 
-Run `Q-learning.py` if you'd like to train Q-learning agent.
+Q-learningエージェントを学習させたい場合は `Q-learning.py`を実行してください。
 
-Run `run_play_dqn.py` if you'd like to see the AI play Tetris without considering "Hold" action.
+AIが「Hold」アクションを考慮せずにテトリスをプレイするのを見たい場合は `run_play_dqn.py` を実行します。
 
-Run `run_train_dqn.py` if you'd like to train the AI without considering "Hold" action.
+Hold "アクションを考慮せずにAIを訓練したい場合は `run_train_dqn.py` を実行します。
 
-Run `run_play_dqn_hold.py` if you'd like to see the AI play Tetris when considering "Hold" action.
+Hold "アクションを考慮したAIによるテトリスプレイを見たい場合は `run_play_dqn_hold.py` を実行します。
 
-Run `run_train_dqn_hold.py` if you'd like to train the AI when considering "Hold" action.
+Hold "アクションを考慮したAIをトレーニングしたい場合は、`run_train_dqn_hold.py`を実行します。
 
-Run `run_performance.py` to see how many games and frames per second it has using randomized actions.
+run_performance.py`を実行して、ランダムなアクションを使用した場合のゲーム数やフレーム数/秒を確認します。
 
-## Links
+## リンク
+
 Explanations for statistics
 
 [Building Controllers for Tetris](https://pdfs.semanticscholar.org/e6b0/a3513e8ad6e08e9000ca2327537ac44c1c5c.pdf)
